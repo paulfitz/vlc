@@ -1183,6 +1183,17 @@ LIBVLC_DEPRECATED LIBVLC_API libvlc_track_description_t *
         libvlc_video_get_title_description( libvlc_media_player_t *p_mi );
 
 /**
+ * Get current sensor rotation.  For example, for a value of 270 an image from
+ * this video would need to be rotated 90 degrees counter-clockwise to appear
+ * upright.
+ *
+ * \param p_mi media player
+ * \return the rotation of sensor in degrees between 0 and 360, or -1 if unknown.
+ *
+ */
+LIBVLC_API float libvlc_video_get_rotation( libvlc_media_player_t *p_mi );
+
+/**
  * Get the full description of available titles
  *
  * \version LibVLC 3.0.0 and later.
@@ -1753,6 +1764,7 @@ LIBVLC_API int libvlc_audio_get_mute( libvlc_media_player_t *p_mi );
  * efficient and reliable than mute.
  */
 LIBVLC_API void libvlc_audio_set_mute( libvlc_media_player_t *p_mi, int status );
+
 
 /**
  * Get current software audio volume.

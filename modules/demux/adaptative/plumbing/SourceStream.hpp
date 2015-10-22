@@ -59,6 +59,7 @@ namespace adaptative
             static void delete_Callback( stream_t * );
             stream_t *custom_stream;
             ChunksSource *source;
+            vlc_object_t *p_obj;
     };
 
 }

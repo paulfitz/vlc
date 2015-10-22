@@ -42,6 +42,9 @@
 #include <vlc_epg.h>
 #include <vlc_charset.h>   /* FromCharset, for EIT */
 #include <vlc_bits.h>
+#include <vlc_rotation.h>
+#include <vlc_input.h>
+
 
 #include "../../mux/mpeg/csa.h"
 
@@ -970,6 +973,11 @@ static int Open( vlc_object_t *p_this )
     ts_pid_t    *patpid;
     vdr_info_t   vdr = {0};
 
+    if (p_demux->p_libvlc) {
+      var_Create( p_demux->p_libvlc, "sensor-rotation", VLC_VAR_FLOAT );
+      var_Create( p_demux->p_libvlc, "has-sensor-rotation", VLC_VAR_BOOL );
+    }
+
     /* Search first sync byte */
     i_packet_size = DetectPVRHeadersAndHeaderSize( p_demux, &i_packet_header_size, &vdr );
     if( i_packet_size < 0 )
@@ -1416,7 +1424,7 @@ static void UpdatePESFilters( demux_t *p_demux, bool b_all )
                 if( espid->u.p_pes->i_stream_type == 0x13 ) /* Object channel */
                     b_stream_selected = true;
                 else if( !p_sys->b_es_all )
-                    b_stream_selected = false;
+                    b_stream_selected = false; /* note - turn this on to let timed_id3 through */
             }
 
             if( b_stream_selected )
@@ -2077,6 +2085,8 @@ static block_t *Opus_Parse(demux_t *demux, block_t *block)
 /****************************************************************************
  * gathering stuff
  ****************************************************************************/
+
+
 static void ParsePES( demux_t *p_demux, ts_pid_t *pid, block_t *p_pes )
 {
     uint8_t header[34];
@@ -2238,6 +2248,17 @@ static void ParsePES( demux_t *p_demux, ts_pid_t *pid, block_t *p_pes )
         else if( pid->u.p_pes->es.fmt.i_codec == VLC_CODEC_OPUS)
         {
             p_block = Opus_Parse(p_demux, p_block);
+        } else {
+            if (pid->u.p_pes->es.fmt.i_codec != -1) {
+                if( i_pes_size > 0 && p_block->i_buffer > i_pes_size ) {
+                    p_block->i_buffer = i_pes_size;
+                }
+                float result = libvlc_rotation_discover(p_block->p_buffer, p_block->i_buffer);
+                if (result>=0) {
+                    var_SetBool(p_demux->p_libvlc, "has-sensor-rotation", true);
+                    var_SetFloat(p_demux->p_libvlc, "sensor-rotation", result);
+                }
+            }
         }
 
         if( !pid->p_parent || pid->p_parent->type != TYPE_PMT )

@@ -22,6 +22,8 @@
 #include "../ChunksSource.hpp"
 #include <vlc_stream.h>
 #include <vlc_demux.h>
+#include <vlc_rotation.h>
+#include <vlc_input.h>
 
 using namespace adaptative;
 
@@ -41,6 +43,12 @@ ChunksSourceStream::ChunksSourceStream(vlc_object_t *p_obj, ChunksSource *source
     custom_stream->p_sys = reinterpret_cast<stream_sys_t*>(this);
 
     source = source_;
+
+    this->p_obj = p_obj;
+    if (p_obj->p_libvlc) {
+        var_Create( p_obj->p_libvlc, "sensor-rotation", VLC_VAR_FLOAT );
+        var_Create( p_obj->p_libvlc, "has-sensor-rotation", VLC_VAR_BOOL );
+    }
 }
 
 ChunksSourceStream::~ChunksSourceStream()
@@ -96,6 +104,11 @@ ssize_t ChunksSourceStream::Read(uint8_t *buf, size_t size)
         }
     }
 
+    float result = libvlc_rotation_discover((const char *)buf, i_copied);
+    if (result>=0) {
+        var_SetBool(p_obj->p_libvlc, "has-sensor-rotation", true);
+        var_SetFloat(p_obj->p_libvlc, "sensor-rotation", result);
+    }
     return i_copied;
 }
 

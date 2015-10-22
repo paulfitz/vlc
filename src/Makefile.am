@@ -484,6 +484,7 @@ SOURCES_libvlc_common = \
 	misc/text_style.c \
 	misc/subpicture.c \
 	misc/subpicture.h \
+	misc/rotation.c \
 	$(NULL)
 
 SOURCES_libvlc_httpd = \

@@ -567,6 +567,14 @@ end:
     return i_ret;
 }
 
+float libvlc_video_get_rotation( libvlc_media_player_t *p_mi ) {
+    if ( !var_GetBool( p_mi->p_libvlc, "has-sensor-rotation" )) {
+        return -1;
+    }
+    float result = var_GetFloat( p_mi->p_libvlc, "sensor-rotation" );
+    return result;
+}
+
 /******************************************************************************
  * libvlc_video_set_deinterlace : enable deinterlace
  *****************************************************************************/
